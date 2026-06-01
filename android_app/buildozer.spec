@@ -70,6 +70,9 @@ android.apptheme = @android:style/Theme.NoTitleBar
 # (str) XML to include in the OUYA manifest
 #android.ouya.manifest =
 
+# (bool) Accept Android SDK license
+android.accept_sdk_license = True
+
 # (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
 android.arch = arm64-v8a
 
