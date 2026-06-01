@@ -1,151 +1,165 @@
 <div align="center">
-    <h1 align="center">
-     学习通,泛雅，超星 作业一键完成（全新版本✨✨✨）
-    </h1>
-    <img src="img/img_3.png">
-<p>该脚本仅用于爬虫技术的学习，如果你有好的功能或者想法，欢迎提交pr</p>
-<p>🛸注意：该脚本完成作业的答案需要从已完成作业账号中导出，仅适合自用！！！</p>
+    <img src="img/cover.jpg" width="320" alt="学习通作业导出工具">
+    <h1>📚 学习通作业提取导出工具</h1>
+    <h3>Xxt-Docx-Exporter</h3>
+    <p>一键提取超星学习通课程作业 · 批量导出格式化 Word 文档 · 无需浏览器</p>
 </div>
 
-![GitHub stars](https://img.shields.io/github/stars/aglorice/new_xxt.svg)
-![python](https://img.shields.io/badge/python-3.10-blue)
-![version](https://img.shields.io/badge/version-v0.5.6-blue)
-![contributors](https://badgen.net/github/contributors/aglorice/new_xxt)
-![prs](https://badgen.net/github/prs/aglorice/new_xxt)
+<p align="center">
+    <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python">
+    <img src="https://img.shields.io/badge/version-v1.0.0-green.svg" alt="Version">
+    <img src="https://img.shields.io/badge/license-MIT-orange.svg" alt="License">
+    <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg" alt="Platform">
+</p>
 
-## 1️⃣实现方法
-- 从已完成该课程的作业的账号中获取作业答案
-- 登录到自己的账号获取题目顺序，与之前的答案进行比较获取到正确的选项或者填空
-- 构造表单数据发起请求完成提交作业
- 
+---
 
-## 2️⃣功能支持列表
-> 如果你在使用的时候遇到了问题，欢迎提交[issue](https://github.com/aglorice/new_xxt/issues)😍😍😍
-### 🚀已实现的功能
-* [x] 日志功能
-* [x] 查询所有的课程
-* [x] 查询课程作业
-* [x] 提取已完成的作业的答案
-* [x] 答案保存为json格式
-* [x] 一键完成作业
-* [x] 支持选择题，填空题，多选题，简答题，论述题，判断题等
-* [x] 查询所有课程的未做作业
-* [x] 查看作业的成绩以及完成状态
-* [x] 获取个人信息
-* [x] 查看作业是否可以重做
-* [x] 手机号密码登录
-* [x] 实现扫码登录
-* [x] 在没有正确答案的情况下提取自己的答案(测试)
-* [x] 多用户批量完成作业
-* [x] 批量提取一个课程所有的作业
-* [x] 自动识别匹配答案策略
-* [x] 新增自动进行重做操作😁
-### todo✨✨✨
-* [ ] 对接题库
-* [ ] ai自动识别答案(chatgpt3.5)
-* [ ] 提取待批阅作业的答案
-* [ ] 保存答案
-## 目前对题型支持
+## ✨ 功能特性
 
-| 题型  | 完成状态     |
-|-----|----------|
-| 单选题 | ✅支持      |
-| 多选题 | ✅支持      |
-| 判断题 | ✅支持      |
-| 简答题 | ✅支持（未测试） |
-| 填空题 | ✅支持      |
-| 论述题 | ✅支持（未测试） |
-| 其他  | ✅支持（未测试） |
-| 编程题 | ✅支持      |
+### 🔥 核心功能
+- **📄 作业导出为 Word (docx)**：将学习通作业一键导出为格式化的 Word 文档
+  - 精美的封面排版（课程名、作业名、导出时间）
+  - 彩色题型标签（单选/多选/判断/填空/简答/论述/编程）
+  - 选择题正确答案**绿色高亮**显示
+  - 答案区域红色标注，一目了然
+- **📦 批量导出**：支持将一个课程的所有作业批量导出为一个或独立 Word 文档
+- **🕷️ 作业爬取**：自动从已完成作业的账号中提取答案，保存为 JSON 格式
+- **✅ 自动完成作业**：根据已爬取的答案，自动完成未做的作业
+- **👥 批量多用户**：支持配置多个账号，批量完成相同作业
 
-## 3️⃣使用方法
-#### 1.克隆到本地
+### 🎯 支持的题型
+| 题型 | 爬取 | 导出 Word | 自动完成 |
+|------|:----:|:---------:|:--------:|
+| 单选题 | ✅ | ✅ | ✅ |
+| 多选题 | ✅ | ✅ | ✅ |
+| 判断题 | ✅ | ✅ | ✅ |
+| 填空题 | ✅ | ✅ | ✅ |
+| 简答题 | ✅ | ✅ | ✅ |
+| 论述题 | ✅ | ✅ | ✅ |
+| 编程题 | ✅ | ✅ | ✅ |
+| 其他 | ✅ | ✅ | ✅ |
+
+### 🔐 登录方式
+- 手机号 + 密码登录
+- 二维码扫码登录
+- 多账号配置登录
+
+---
+
+## 📥 快速开始
+
+### 环境要求
+- Python 3.10+
+- pip
+
+### 安装步骤
+
 ```bash
-git clone https://github.com/aglorice/new_xxt.git
-```
+# 1. 克隆仓库
+git clone https://github.com/liuwanwan1/xxt-docx-exporter.git
+cd xxt-docx-exporter
 
-#### 2.进入目录
-```bash
-cd new_xxt
-```
-#### 3.安装依赖
-```bash
+# 2. 安装依赖
 pip install -r requirements.txt
-```
-#### 4.运行`main.py`
-```bash
+
+# 3. （可选）配置多用户批量完成
+cp user.json.example user.json
+# 编辑 user.json，填入账号信息
+
+# 4. 运行
 python main.py
 ```
-#### 5.使用爬取功能去爬取已完成的作业的账号，得到答案文件后，你可以选择将得到的json文件移动到`answers`文件下，然后使用完成作业的功能即可。使用批量功能前，请提前配置 `user.json`
-#### 如果觉得上述方式比较麻烦，该项目提供exe版本，打开 [releases](https://github.com/aglorice/new_xxt/releases),找到 `xxt.zip`,下载下来，解压后运行 `xxt/xxt.exe` 即可。
 
-### 🐞🐞🐞如果提交的时候显示无效的参数请重新运行一次就可以了。
-`answers/27835863.json`
-```json
-{
-  "27835863": [
-    {
-      "id": "163497980",
-      "title": "1.(单选题)在数据结构中，与所使用的计算机无关的是数据的（）结构。",
-      "type": "单选题",
-      "answer": "A",
-      "option": [
-        "A. 逻辑",
-        "B. 存储",
-        "C. 逻辑和存储",
-        "D. 物理"
-      ]
-    },
-    {
-      "id": "163498096",
-      "title": "2.(单选题)算法分析的两个主要方面是（）。",
-      "type": "单选题",
-      "answer": "A",
-      "option": [
-        "A. 空间复杂度和时间复杂度",
-        "B. 正确性和简明性",
-        "C. 可读性和文档性",
-        "D. 数据复杂性和程序复杂性"
-      ]
-    },
-    ...
-  ]
-}
+### 使用流程
+
 ```
-`user.json`
-```json
-{
-  "users": [
-    {
-      "phone":"你的手机号",
-      "password": "密码",
-      "name": "test1"
-    },
-    {
-      "phone":"你的手机号",
-      "password": "密码",
-      "name": "test1"
-    }
-  ]
-}
+1️⃣ 选择登录方式（手机号/扫码/已有账号）
+         ↓
+2️⃣ 菜单选择 [5] 爬取指定作业的答案
+         ↓
+3️⃣ 菜单选择 [10] 导出为 Word 文档
+   或选择 [11] 批量导出所有答案
+   或选择 [12] 导出指定课程的全部作业
+         ↓
+4️⃣ 在 answers/ 目录下找到生成的 .docx 文件
 ```
 
-### 终端运行结果（可能会和新版存在差异，以最新版本为主）:
-![](img/img.png)
-#### 选择功能
-![](img/img_1.png)
-#### 批量完成作业
-![](img/img_2.png)
+---
 
-## 4️⃣注意事项
-- 仓库发布的`new_xxt`项目中涉及的任何脚本，仅用于测试和学习研究，禁止用于商业用途，不能保证其合法性，准确性，完整性和有效性，请根据情况自行判断。
-- 本项目遵循MIT License协议，如果本特别声明与MIT License协议有冲突之处，以本特别声明为准。
-- 以任何方式查看此项目的人或直接或间接使用`new_xxt`项目的任何脚本的使用者都应仔细阅读此声明。`aglorice` 保留随时更改或补充此免责声明的权利。一旦使用并复制了任何相关脚本或`new_xxt`项目，则视为您已接受此免责声明。
+## 📋 菜单说明
 
+| 序号 | 功能 | 说明 |
+|:----:|------|------|
+| 1 | 查看课程 | 列出当前账号所有课程 |
+| 2 | 查看答案文件 | 查看已爬取的答案 JSON 文件 |
+| 3 | 查询未完成作业 | 扫描所有课程的未交作业 |
+| 4 | 清除答案文件 | 清空 answers/ 目录 |
+| 5 | 爬取指定作业答案 | 从已完成作业提取答案 |
+| 6 | 批量爬取课程答案 | 一键爬取整个课程的所有作业答案 |
+| 7 | 完成作业 | 使用已有答案自动完成未交作业 |
+| 8 | 批量完成作业 | 多账号批量完成同一作业 |
+| 9 | 退出登录 | 退出当前账号 |
+| **10** | **导出作业为 Word** | 🆕 单个作业 → docx |
+| **11** | **批量导出为 Word** | 🆕 全部答案 → docx（支持合并） |
+| **12** | **导出课程作业汇总** | 🆕 指定课程 → 一个 Word 文档 |
 
-### 如果你觉得不错的话，就请我吃颗糖吧。😁😁😁
-<img src="img\img_4.png" alt="img_4" width="200" height="272" />
+---
 
-### Star History
+## 🖼️ 导出效果预览
 
-[![Star History Chart](https://api.star-history.com/svg?repos=aglorice/new_xxt&type=Date)](https://star-history.com/#aglorice/new_xxt&Date)
+生成的 Word 文档包含：
+- 🎨 **封面页**：课程名称 + 作业名称 + 导出时间
+- 🏷️ **彩色题型标签**：单选题(蓝) 多选题(绿) 判断题(橙) 填空题(灰) 简答题(青) 论述题(紫) 编程题(红)
+- 📊 **选项表格**：选择题选项以表格形式呈现，正确答案绿色高亮背景
+- ✍️ **答案解析**：红色字体标明正确答案
+
+---
+
+## 🏗️ 项目结构
+
+```
+xxt-docx-exporter/
+├── main.py                  # 程序入口
+├── config.py                # 全局配置
+├── requirements.txt         # 依赖列表
+├── user.json.example        # 多用户配置模板
+├── my_xxt/
+│   ├── api.py               # 学习通 API 封装（登录/课程/作业/提交）
+│   ├── login.py             # 登录模块
+│   ├── answer_type.py       # 已提交作业答案解析
+│   ├── question_type.py     # 未提交作业题目解析
+│   ├── findAnswer.py        # 答案匹配算法
+│   ├── my_tools.py          # 菜单与交互逻辑
+│   └── export_docx.py       # 🆕 Word 文档导出模块
+├── answers/                 # 答案 JSON 与导出 docx 存放目录
+└── img/                     # 图片资源
+```
+
+---
+
+## ⚠️ 免责声明
+
+- 本项目仅供**学习交流**使用，请勿用于商业用途
+- 使用本工具时请遵守超星学习通的平台规则和相关法律法规
+- 本项目遵循 MIT License 协议
+- 超星学习通为北京世纪超星信息技术发展有限责任公司的商标，本项目与其无关
+
+---
+
+## 🙏 致谢
+
+- 原项目 [aglorice/new_xxt](https://github.com/aglorice/new_xxt) 提供了优秀的爬虫基础
+- [python-docx](https://python-docx.readthedocs.io/) 提供了强大的 Word 文档生成能力
+- [Rich](https://github.com/Textualize/rich) 提供了美观的终端界面
+
+---
+
+## 📄 License
+
+MIT License © 2024 [liuwanwan1](https://github.com/liuwanwan1)
+
+---
+
+<p align="center">
+    <sub>如果这个项目对你有帮助，请给个 ⭐ Star 支持一下！</sub>
+</p>

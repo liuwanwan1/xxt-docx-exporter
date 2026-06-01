@@ -17,6 +17,7 @@ from rich.text import Text
 
 from my_xxt.findAnswer import match_answer
 from my_xxt.api import NewXxt
+from my_xxt.export_docx import generate_docx_from_json, batch_export_to_docx, export_course_assignments_to_docx
 
 from config import __VERSION__
 
@@ -258,6 +259,84 @@ def select_menu(console: Console, xxt: NewXxt) -> None:
                     fail_count = fail_count + 1
             console.log(f"[yellow]一共成功{success_count},失败数为{fail_count}[/yellow]")
             continue
+        # 导出指定作业答案为Word文档
+        elif index == "10":
+            dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+            answers_path = os.path.join(dir_path, "answers")
+
+            # 显示已有的答案文件
+            show_all_answer_file(console)
+
+            if not os.path.exists(answers_path) or not os.listdir(answers_path):
+                console.log("[red]暂无答案文件，请先爬取作业答案")
+                continue
+
+            answer_files = [f for f in os.listdir(answers_path) if f.endswith('.json')]
+            file_id = console.input("[yellow]请输入要导出的答案文件ID（输入文件名前缀，如27835863）：")
+
+            matched_files = [f for f in answer_files if file_id in f]
+            if not matched_files:
+                console.log(f"[red]未找到匹配的答案文件: {file_id}")
+                continue
+
+            for mf in matched_files:
+                json_path = os.path.join(answers_path, mf)
+                with console.status(f"[green]正在导出 {mf} 为Word文档..."):
+                    try:
+                        output_path = generate_docx_from_json(json_path)
+                        console.log(f"[green]✅ 导出成功: {output_path}")
+                    except Exception as e:
+                        console.log(f"[red]❌ 导出失败 {mf}: {e}")
+            continue
+
+        # 批量导出所有答案为Word文档
+        elif index == "11":
+            dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+            answers_path = os.path.join(dir_path, "answers")
+
+            if not os.path.exists(answers_path) or not os.listdir(answers_path):
+                console.log("[red]暂无答案文件，请先爬取作业答案")
+                continue
+
+            answer_files = [f for f in os.listdir(answers_path) if f.endswith('.json')]
+            console.log(f"[yellow]找到 {len(answer_files)} 个答案文件")
+
+            export_mode = console.input("[yellow]请选择导出模式：（1=每个作业单独导出，2=合并为一个文档）")
+            merge = (export_mode == "2")
+
+            with console.status("[green]正在批量导出为Word文档..."):
+                try:
+                    output_files = batch_export_to_docx(answers_path, merge=merge)
+                    console.log(f"[green]✅ 批量导出完成，共生成 {len(output_files)} 个文件：")
+                    for f in output_files:
+                        console.log(f"[green]   - {f}")
+                except Exception as e:
+                    console.log(f"[red]❌ 批量导出失败: {e}")
+            continue
+
+        # 导出指定课程的所有作业为一个Word文档
+        elif index == "12":
+            dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+            answers_path = os.path.join(dir_path, "answers")
+
+            if not os.path.exists(answers_path) or not os.listdir(answers_path):
+                console.log("[red]暂无答案文件，请先爬取作业答案")
+                continue
+
+            # 显示已有的答案文件
+            show_all_answer_file(console)
+
+            course_name = console.input("[yellow]请输入课程名称（或关键词）：")
+            with console.status(f"[green]正在查找课程'{course_name}'的作业并导出..."):
+                try:
+                    output_path = export_course_assignments_to_docx(course_name, answers_path)
+                    console.log(f"[green]✅ 导出成功: {output_path}")
+                except ValueError as e:
+                    console.log(f"[red]❌ 导出失败: {e}")
+                except Exception as e:
+                    console.log(f"[red]❌ 导出失败: {e}")
+            continue
+
         # 退出登录
         elif index == "9":
             return
@@ -369,6 +448,9 @@ def show_menu(console: Console) -> None:
             Text("8.批量完成作业完成作业（请先确认是否已经爬取了你想要完成作业的答案，请填好user.json里的账号数据）",
                  justify="center", style="bold yellow"),
             Text("9.退出登录", justify="center", style="bold yellow"),
+            Text("10.导出指定作业答案为Word文档(docx)", justify="center", style="bold cyan"),
+            Text("11.批量导出所有答案为Word文档(docx)", justify="center", style="bold cyan"),
+            Text("12.导出指定课程的所有作业为一个Word文档", justify="center", style="bold cyan"),
         ),
         style="bold green",
         width=120,

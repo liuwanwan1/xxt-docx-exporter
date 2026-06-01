@@ -2,5 +2,16 @@
 /output/
 /user.json
 /upload.py
-/__pycache__
+/__pycache__/
 /logfile.log
+*.pyc
+*.pyo
+/dist/
+/build/
+/*.spec
+/.idea/
+/.vscode/
+/.claude/
+.DS_Store
+Thumbs.db
+answers/*.docx
