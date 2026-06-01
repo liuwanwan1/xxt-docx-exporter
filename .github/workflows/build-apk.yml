@@ -15,51 +15,24 @@ jobs:
   build-apk:
     runs-on: ubuntu-22.04
     timeout-minutes: 60
+    container:
+      image: kivy/buildozer:latest
+      options: --user root
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            python3-pip python3-dev \
-            openjdk-17-jdk openjdk-17-jre \
-            autoconf libtool pkg-config \
-            zlib1g-dev libncurses5-dev libncursesw5-dev \
-            libtinfo5 cmake libffi-dev libssl-dev \
-            build-essential lld git zip unzip \
-            autoconf automake libtool \
-            libltdl-dev
-
-      - name: Set up Java
-        run: |
-          echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
-          echo "/usr/lib/jvm/java-17-openjdk-amd64/bin" >> $GITHUB_PATH
-
-      - name: Install Buildozer
-        run: |
-          pip install --upgrade pip setuptools wheel
-          pip install buildozer Cython virtualenv
-
       - name: Prepare Android app files
         run: |
-          # Create Android app build directory
           mkdir -p android_build
           cp android_app/main.py android_build/
           cp android_app/buildozer.spec android_build/
           cp -r my_xxt android_build/
           cp config.py android_build/
           mkdir -p android_build/img
-          cp img/cover.jpg android_build/img/ 2>/dev/null || echo "Warning: cover.jpg not found"
-          # Also check for alternate image names
-          cp img/img_3.png android_build/img/ 2>/dev/null || echo "Warning: img_3.png not found"
+          cp img/cover.jpg android_build/img/ 2>/dev/null || echo "cover.jpg not found"
+          cp img/img_3.png android_build/img/ 2>/dev/null || echo "img_3.png not found"
           mkdir -p android_build/answers
           touch android_build/answers/.gitkeep
           touch android_build/my_xxt/__init__.py
@@ -76,44 +49,33 @@ jobs:
       - name: Build APK with Buildozer
         run: |
           cd android_build
-          # Build release APK with license auto-acceptance
-          buildozer -v android release 2>&1 | tail -100
+          buildozer -v android release
         timeout-minutes: 45
 
       - name: Sign and align APK
         run: |
           cd android_build
-          # Find the unsigned release APK
           UNSIGNED_APK=$(find bin -name "*release-unsigned*.apk" 2>/dev/null | head -1)
           if [ -z "$UNSIGNED_APK" ]; then
-            echo "Looking for any APK in bin/"
-            find bin -name "*.apk" 2>/dev/null
             UNSIGNED_APK=$(find bin -name "*.apk" 2>/dev/null | head -1)
           fi
-
           if [ -n "$UNSIGNED_APK" ]; then
             echo "Found APK: $UNSIGNED_APK"
             SIGNED_APK="xxt-docx-exporter-v1.0.0.apk"
-
-            # Sign with jarsigner
             jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
               -keystore xxtdocx.keystore \
               -storepass xxtdocx2024 -keypass xxtdocx2024 \
               "$UNSIGNED_APK" xxtdocx
-
-            # Find zipalign from Android SDK
-            ZIPALIGN=$(find ~/.buildozer -name "zipalign" -type f 2>/dev/null | head -1)
+            ZIPALIGN=$(find / -name "zipalign" -type f 2>/dev/null | head -1)
             if [ -n "$ZIPALIGN" ]; then
               "$ZIPALIGN" -v 4 "$UNSIGNED_APK" "$SIGNED_APK"
             else
               cp "$UNSIGNED_APK" "$SIGNED_APK"
             fi
-
             echo "APK_SIZE=$(stat -c%s "$SIGNED_APK")" >> $GITHUB_ENV
-            echo "Signed APK created: $SIGNED_APK"
             ls -lh "$SIGNED_APK"
           else
-            echo "No APK found in bin directory"
+            echo "ERROR: No APK found"
             find . -name "*.apk" 2>/dev/null
             exit 1
           fi
@@ -133,29 +95,23 @@ jobs:
           name: "v1.0.0 - 学习通作业提取工具"
           body: |
             # 📚 学习通作业提取工具 v1.0.0
-
             ## 📱 Android APK 下载
-
             下载 `xxt-docx-exporter-v1.0.0.apk` 安装到安卓手机即可使用。
-
             ### 功能特性
             - 🔐 手机号/密码登录 & 扫码登录
             - 📋 查看所有课程和作业列表
             - 🕷️ 一键爬取已完成作业的答案
             - 📄 导出为格式化Word文档(docx)
             - 📦 支持批量导出（独立/合并模式）
-            - 🎨 封面页、彩色题型标签、正确答案高亮
-
+            - 🎨 精美封面页、彩色题型标签、正确答案高亮
             ### 安装说明
             1. 下载 APK 文件到手机
             2. 允许"安装未知来源应用"
             3. 安装后打开应用
             4. 登录学习通账号即可使用
-
             ### ⚠️ 注意
             - 仅供学习交流使用
             - 需允许网络访问权限
-
             ---
             🤖 Built with GitHub Actions
           files: android_build/xxt-docx-exporter-v1.0.0.apk
