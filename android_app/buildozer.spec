@@ -30,13 +30,8 @@ source.exclude_patterns = .gitignore,user.json,upload.py,logfile.log
 # (str) Application versioning
 version = 1.0.0
 
-# (str) Application versioning (android)
-version.regex = __version__ = ['\"](.*)['\"]
-
-# (str) Application versioning (android)
-version.filename = %(source.dir)s/../config.py
-
 # (list) Application requirements
+# Note: pycryptodome may fail to build; if so, it will use pure Python fallback
 requirements = python3,requests,beautifulsoup4,lxml,pycryptodome,qrcode,python-docx,rich,soupsieve,urllib3,certifi,charset-normalizer,idna,markdown-it-py,mdurl,pygments
 
 # (str) Custom source folders for requirements
