@@ -49,7 +49,8 @@ jobs:
       - name: Build APK with Buildozer
         run: |
           cd android_build
-          buildozer -v android release
+          # Pipe yes to handle "are you sure" prompts (running as root in Docker)
+          yes | buildozer -v android release
         timeout-minutes: 45
 
       - name: Sign and align APK
