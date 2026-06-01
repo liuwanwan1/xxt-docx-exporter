@@ -73,12 +73,22 @@ jobs:
             -storepass xxtdocx2024 -keypass xxtdocx2024 \
             -dname "CN=liuwanwan1, OU=Dev, O=XxtDocx, L=Beijing, ST=Beijing, C=CN"
 
+      - name: Accept Android SDK licenses
+        run: |
+          # Pre-create Android SDK license acceptance
+          # This prevents Buildozer from hanging on license prompt
+          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+          # Android SDK License hash - this is the standard accepted license
+          echo -e "\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          echo "Android SDK licenses pre-accepted"
+
       - name: Build APK with Buildozer
         run: |
           cd android_build
           # Build release APK
-          buildozer android release 2>&1 | tail -50
-        timeout-minutes: 40
+          # Use timeout to prevent hanging
+          timeout 2400 buildozer -v android release 2>&1 | tail -100
+        timeout-minutes: 45
 
       - name: Sign and align APK
         run: |
