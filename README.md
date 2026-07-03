@@ -62,11 +62,14 @@ cd xxt-docx-exporter
 # 2. 安装依赖
 pip install -r requirements.txt
 
-# 3. （可选）配置多用户批量完成
+# 3. （可选）开发/打包依赖
+pip install -r requirements-dev.txt
+
+# 4. （可选）配置多用户批量完成
 cp user.json.example user.json
 # 编辑 user.json，填入账号信息
 
-# 4. 运行
+# 5. 运行
 python main.py
 ```
 
@@ -83,6 +86,26 @@ python main.py
          ↓
 4️⃣ 在 answers/ 目录下找到生成的 .docx 文件
 ```
+
+---
+
+## 🧪 测试与打包
+
+```bash
+# 运行单元测试
+python -m unittest discover -s test
+
+# 编译检查
+python -m compileall main.py upload.py config.py my_xxt android_app test
+
+# Windows 桌面版打包依赖
+pip install -r requirements-dev.txt
+```
+
+- `requirements.txt` 仅包含运行所需依赖
+- `requirements-dev.txt` 包含 PyInstaller 等打包依赖
+- GitHub Actions 会在打包前执行单元测试
+- Android APK 签名密码不再写入仓库，CI 优先读取 `ANDROID_KEYSTORE_PASSWORD` Secret，未配置时使用临时密码
 
 ---
 
@@ -121,19 +144,38 @@ python main.py
 xxt-docx-exporter/
 ├── main.py                  # 程序入口
 ├── config.py                # 全局配置
-├── requirements.txt         # 依赖列表
+├── requirements.txt         # 运行依赖
+├── requirements-dev.txt     # 开发/打包依赖
 ├── user.json.example        # 多用户配置模板
+├── test/                    # 单元测试
 ├── my_xxt/
 │   ├── api.py               # 学习通 API 封装（登录/课程/作业/提交）
 │   ├── login.py             # 登录模块
+│   ├── answer_files.py      # 答案 JSON 文件读写与过滤
 │   ├── answer_type.py       # 已提交作业答案解析
 │   ├── question_type.py     # 未提交作业题目解析
 │   ├── findAnswer.py        # 答案匹配算法
+│   ├── submission.py        # 作业提交表单数据构造
 │   ├── my_tools.py          # 菜单与交互逻辑
-│   └── export_docx.py       # 🆕 Word 文档导出模块
+│   └── export_docx.py       # Word 文档导出模块
+├── android_app/             # Android/Kivy 应用与 Buildozer 配置
 ├── answers/                 # 答案 JSON 与导出 docx 存放目录
 └── img/                     # 图片资源
 ```
+
+---
+
+## 🔧 近期优化
+
+- 修复 `requirements.txt` 编码问题，确保 `pip install -r requirements.txt` 可用
+- 抽离答案文件处理逻辑，导出后的 `.docx` 不会再被误当作 JSON 解析
+- 重构 Word 导出模块，单作业、批量、课程汇总共用同一套渲染流程
+- 拆分菜单处理函数，降低主交互流程复杂度
+- 加强题目/答案 HTML 解析容错，单题解析失败不会拖垮整份作业
+- 拆出提交表单构造逻辑并补充单元测试
+- 清理已跟踪的 `__pycache__` 编译产物
+- Android 构建移除明文签名密码，批量操作失败会显示/记录错误
+- `upload.py` 改为显式确认后再提交、推送和打标签
 
 ---
 
