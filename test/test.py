@@ -1,8 +1,18 @@
-from rich.console import Console
+import unittest
 
-console = Console(record=True)  # 设置 record=True
 
-console.print("Hello, World!")
+class RichConsoleTests(unittest.TestCase):
+    def test_recorded_console_exports_printed_text(self):
+        try:
+            from rich.console import Console
+        except ModuleNotFoundError:
+            self.skipTest("rich is not installed")
 
-captured_output_value = console.export_text()
-print("Captured Output:", captured_output_value)
+        console = Console(record=True)
+        console.print("Hello, World!")
+
+        self.assertIn("Hello, World!", console.export_text())
+
+
+if __name__ == "__main__":
+    unittest.main()

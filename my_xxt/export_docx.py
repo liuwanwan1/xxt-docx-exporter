@@ -7,7 +7,9 @@
 支持将JSON格式的答案文件导出为格式化的Word文档
 """
 import os
+import re
 from datetime import datetime
+from json import JSONDecodeError
 
 from docx import Document
 from docx.shared import Inches, Pt, Cm, RGBColor
@@ -15,6 +17,22 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
+
+from my_xxt.answer_files import answer_json_files, read_answer_json
+
+
+def sanitize_filename(filename: str, replacement: str = "_") -> str:
+    """Return a filename safe for Windows, macOS, and Linux."""
+    cleaned = re.sub(r'[<>:"/\\|?*\x00-\x1f]', replacement, filename).strip()
+    cleaned = cleaned.rstrip(". ")
+    return cleaned or "未命名"
+
+
+def course_matches_query(course_name: str, query: str) -> bool:
+    query = query.strip()
+    if not query:
+        return False
+    return query in course_name
 
 
 def set_cell_shading(cell, color):
@@ -79,11 +97,8 @@ def generate_docx_from_json(json_path: str, output_path: str = None) -> str:
     :param output_path: 输出Word文件的路径（可选，默认与JSON同目录同文件名）
     :return: 生成的docx文件路径
     """
-    import json
-
     # 读取JSON文件
-    with open(json_path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    data = read_answer_json(json_path)
 
     # 提取信息
     info = data.get('info', {})
@@ -302,7 +317,7 @@ def batch_export_to_docx(json_dir: str, output_dir: str = None, merge: bool = Fa
     os.makedirs(output_dir, exist_ok=True)
 
     # 获取所有JSON文件
-    json_files = [f for f in os.listdir(json_dir) if f.endswith('.json')]
+    json_files = answer_json_files(json_dir)
 
     if not json_files:
         raise FileNotFoundError(f"目录中未找到JSON文件: {json_dir}")
@@ -340,13 +355,13 @@ def batch_export_to_docx(json_dir: str, output_dir: str = None, merge: bool = Fa
 
         doc.add_page_break()
 
-        import json
-
         for file_idx, json_file in enumerate(sorted(json_files), 1):
             json_path = os.path.join(json_dir, json_file)
-
-            with open(json_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+            try:
+                data = read_answer_json(json_path)
+            except (OSError, JSONDecodeError, TypeError, ValueError) as e:
+                print(f"导出失败 {json_file}: {e}")
+                continue
 
             info = data.get('info', {})
             course_name = info.get('course_name', '未知课程')
@@ -481,9 +496,7 @@ def export_course_assignments_to_docx(course_name: str, json_dir: str, output_pa
     :param output_path: 输出路径（可选）
     :return: 生成的docx文件路径
     """
-    import json
-
-    json_files = [f for f in os.listdir(json_dir) if f.endswith('.json')]
+    json_files = answer_json_files(json_dir)
 
     if not json_files:
         raise FileNotFoundError(f"目录中未找到JSON文件: {json_dir}")
@@ -492,10 +505,12 @@ def export_course_assignments_to_docx(course_name: str, json_dir: str, output_pa
     course_files = []
     for json_file in json_files:
         json_path = os.path.join(json_dir, json_file)
-        with open(json_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+        try:
+            data = read_answer_json(json_path)
+        except (OSError, JSONDecodeError, TypeError, ValueError):
+            continue
         info = data.get('info', {})
-        if info.get('course_name', '') == course_name:
+        if course_matches_query(info.get('course_name', ''), course_name):
             course_files.append(json_path)
 
     if not course_files:
@@ -532,8 +547,7 @@ def export_course_assignments_to_docx(course_name: str, json_dir: str, output_pa
 
     # 逐个作业导出
     for file_idx, json_path in enumerate(sorted(course_files), 1):
-        with open(json_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+        data = read_answer_json(json_path)
 
         info = data.get('info', {})
         work_name = info.get('work_name', '未知作业')
@@ -639,7 +653,7 @@ def export_course_assignments_to_docx(course_name: str, json_dir: str, output_pa
     footer_run.italic = True
 
     if output_path is None:
-        output_path = os.path.join(json_dir, f'{course_name}_作业汇总.docx')
+        output_path = os.path.join(json_dir, f'{sanitize_filename(course_name)}_作业汇总.docx')
 
     doc.save(output_path)
     return output_path

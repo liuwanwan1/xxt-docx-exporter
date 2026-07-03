@@ -316,7 +316,7 @@ class NewXxt:
         try:
             result_view = BeautifulSoup(result.text, "lxml")
             result_view_soup = result_view.find("a", attrs={"class": "redo"})
-            if "重做" in result_view_soup:
+            if result_view_soup and "重做" in result_view_soup.get_text():
                 return "yes"
         except Exception as e:
             return "no"
@@ -490,10 +490,10 @@ class NewXxt:
         )
     
         work_view_soup = BeautifulSoup(work_question_view.text, "lxml")
-        randomOptions_soup = work_view_soup.find_all("input", attrs={"id": "randomOptions"})
+        randomOptions_soup = work_view_soup.find("input", attrs={"id": "randomOptions"})
 
-        # 判断选项是否是乱序的
-        randomOptions = re.findall(r'value="(.*?)"', str(randomOptions_soup))[0]
+        # 判断选项是否是乱序的；页面缺失该字段时按未乱序处理
+        randomOptions = randomOptions_soup.get("value", "false") if randomOptions_soup else "false"
         self.randomOptions = randomOptions
 
         work_view = work_view_soup.find_all("div", attrs={"class": "padBom50 questionLi fontLabel singleQuesId"})

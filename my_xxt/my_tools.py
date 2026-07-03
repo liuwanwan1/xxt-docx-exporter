@@ -4,10 +4,7 @@
 # @Email  :401208941@qq.com
 # @PROJECT_NAME :xxt_cli
 # @File :  my_tools.py
-import difflib
-import json
 import os
-import shutil
 import time
 
 from rich.console import Console, Group
@@ -17,6 +14,14 @@ from rich.text import Text
 
 from my_xxt.findAnswer import match_answer
 from my_xxt.api import NewXxt
+from my_xxt.answer_files import (
+    answer_file_exists,
+    answer_json_files,
+    default_answers_path,
+    load_answer_file_infos,
+    read_answer_json,
+    write_answer_json,
+)
 from my_xxt.export_docx import generate_docx_from_json, batch_export_to_docx, export_course_assignments_to_docx
 
 from config import __VERSION__
@@ -261,17 +266,16 @@ def select_menu(console: Console, xxt: NewXxt) -> None:
             continue
         # 导出指定作业答案为Word文档
         elif index == "10":
-            dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-            answers_path = os.path.join(dir_path, "answers")
+            answers_path = default_answers_path()
 
             # 显示已有的答案文件
             show_all_answer_file(console)
 
-            if not os.path.exists(answers_path) or not os.listdir(answers_path):
+            answer_files = answer_json_files(answers_path)
+            if not answer_files:
                 console.log("[red]暂无答案文件，请先爬取作业答案")
                 continue
 
-            answer_files = [f for f in os.listdir(answers_path) if f.endswith('.json')]
             file_id = console.input("[yellow]请输入要导出的答案文件ID（输入文件名前缀，如27835863）：")
 
             matched_files = [f for f in answer_files if file_id in f]
@@ -291,14 +295,13 @@ def select_menu(console: Console, xxt: NewXxt) -> None:
 
         # 批量导出所有答案为Word文档
         elif index == "11":
-            dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-            answers_path = os.path.join(dir_path, "answers")
+            answers_path = default_answers_path()
 
-            if not os.path.exists(answers_path) or not os.listdir(answers_path):
+            answer_files = answer_json_files(answers_path)
+            if not answer_files:
                 console.log("[red]暂无答案文件，请先爬取作业答案")
                 continue
 
-            answer_files = [f for f in os.listdir(answers_path) if f.endswith('.json')]
             console.log(f"[yellow]找到 {len(answer_files)} 个答案文件")
 
             export_mode = console.input("[yellow]请选择导出模式：（1=每个作业单独导出，2=合并为一个文档）")
@@ -316,10 +319,9 @@ def select_menu(console: Console, xxt: NewXxt) -> None:
 
         # 导出指定课程的所有作业为一个Word文档
         elif index == "12":
-            dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-            answers_path = os.path.join(dir_path, "answers")
+            answers_path = default_answers_path()
 
-            if not os.path.exists(answers_path) or not os.listdir(answers_path):
+            if not answer_json_files(answers_path):
                 console.log("[red]暂无答案文件，请先爬取作业答案")
                 continue
 
@@ -502,41 +504,22 @@ def dateToJsonFile(answer: list, info: dict) -> None:
     :param info:
     :return:
     """
-    to_dict = {
-        info["id"]: answer,
-        "info": info
-    }
-    # json.dumps 序列化时对中文默认使用的ascii编码.想输出真正的中文需要指定ensure_ascii=False
-    json_data = json.dumps(to_dict, ensure_ascii=False)
-    path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    path = os.path.join(path, "answers", f"{info['id']}.json")
-    with open(path, 'w', encoding="utf-8") as f_:
-        f_.write(json_data)
+    write_answer_json(answer, info)
 
 
 def jsonFileToDate(file: str) -> dict:
-    with open(file, 'r', encoding="utf-8") as f_:
-        json_data = dict(json.loads(f_.read()))
-    return json_data
+    return read_answer_json(file)
 
 
 def show_all_answer_file(console: Console) -> None:
-    answer_files = []
-    answer_file_info = []
-    dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    path = os.path.join(dir_path, "answers")
-    for root, dirs, files in os.walk(path):
-        answer_files.append(files)
-    for item in answer_files[0]:
-        _path = os.path.join(path, item)
-        answer_file_info.append(jsonFileToDate(_path)["info"])
+    answer_file_info = load_answer_file_infos()
 
     tb = Table("id", "作业名", "文件名称", "课程名称", border_style="blue", width=116)
     for work_info in answer_file_info:
         tb.add_row(
             f"[green]{work_info['id']}[/green]",
             work_info["work_name"],
-            work_info["id"] + ".json",
+            work_info["file_name"],
             work_info["course_name"],
             style="bold yellow"
         )
@@ -549,16 +532,8 @@ def show_all_answer_file(console: Console) -> None:
     )
 
 
-def is_exist_answer_file(work_file_name: str) -> bool:
-    answer_files = []
-    dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    path = os.path.join(dir_path, "answers")
-    for root, dirs, files in os.walk(path):
-        answer_files.append(files)
-    if work_file_name in answer_files[0]:
-        return True
-    else:
-        return False
+def is_exist_answer_file(work_file_name: str, answers_path: str | None = None) -> bool:
+    return answer_file_exists(work_file_name, answers_path)
 
 
 def del_file(path_data: str):
