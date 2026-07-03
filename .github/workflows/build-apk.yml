@@ -38,12 +38,14 @@ jobs:
           touch android_build/my_xxt/__init__.py
 
       - name: Generate keystore
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD || format('xxtdocx-{0}', github.run_id) }}
         run: |
           keytool -genkey -v \
             -keystore android_build/xxtdocx.keystore \
             -alias xxtdocx \
             -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass xxtdocx2024 -keypass xxtdocx2024 \
+            -storepass "$KEYSTORE_PASSWORD" -keypass "$KEYSTORE_PASSWORD" \
             -dname "CN=liuwanwan1, OU=Dev, O=XxtDocx, L=Beijing, ST=Beijing, C=CN"
 
       - name: Build APK with Buildozer
@@ -54,6 +56,8 @@ jobs:
         timeout-minutes: 45
 
       - name: Sign and align APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD || format('xxtdocx-{0}', github.run_id) }}
         run: |
           cd android_build
           UNSIGNED_APK=$(find bin -name "*release-unsigned*.apk" 2>/dev/null | head -1)
@@ -65,7 +69,7 @@ jobs:
             SIGNED_APK="xxt-docx-exporter-v1.0.0.apk"
             jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
               -keystore xxtdocx.keystore \
-              -storepass xxtdocx2024 -keypass xxtdocx2024 \
+              -storepass "$KEYSTORE_PASSWORD" -keypass "$KEYSTORE_PASSWORD" \
               "$UNSIGNED_APK" xxtdocx
             ZIPALIGN=$(find / -name "zipalign" -type f 2>/dev/null | head -1)
             if [ -n "$ZIPALIGN" ]; then

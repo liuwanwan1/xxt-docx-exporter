@@ -8,6 +8,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+KEYSTORE_PASSWORD="${XXT_KEYSTORE_PASSWORD:-xxtdocx-$(date +%s)}"
 
 echo "========================================="
 echo "  学习通作业提取工具 - APK 构建脚本"
@@ -70,7 +71,7 @@ if [ ! -f "$BUILD_DIR/xxtdocx.keystore" ]; then
         -keystore "$BUILD_DIR/xxtdocx.keystore" \
         -alias xxtdocx \
         -keyalg RSA -keysize 2048 -validity 10000 \
-        -storepass xxtdocx2024 -keypass xxtdocx2024 \
+        -storepass "$KEYSTORE_PASSWORD" -keypass "$KEYSTORE_PASSWORD" \
         -dname "CN=liuwanwan1, OU=Dev, O=XxtDocx, L=Beijing, ST=Beijing, C=CN"
 fi
 echo -e "${GREEN}签名密钥就绪${NC}"
@@ -106,7 +107,7 @@ else
         echo -e "${YELLOW}签名 APK...${NC}"
         jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
             -keystore "$BUILD_DIR/xxtdocx.keystore" \
-            -storepass xxtdocx2024 -keypass xxtdocx2024 \
+            -storepass "$KEYSTORE_PASSWORD" -keypass "$KEYSTORE_PASSWORD" \
             "$APK_FILE" xxtdocx
 
         # Align with zipalign

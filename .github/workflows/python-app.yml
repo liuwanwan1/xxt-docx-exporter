@@ -27,17 +27,17 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: "3.10"
-      - name: Pypi Install
+      - name: Upgrade pip
         run: |
           python -m pip install --upgrade pip
 
-      - name: Pypi Install
+      - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
 
-      - name: dependencies Install
+      - name: Run tests
         run: |
-          pip install -r requirements.txt
+          python -m unittest discover -s test
 
       - name: pyinstaller package exe
         run: |

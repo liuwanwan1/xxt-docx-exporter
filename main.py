@@ -20,9 +20,8 @@ class MyConsole(Console):
 
     def print(self, *args, **kwargs):
         super().print(*args, **kwargs)
-        captured_output_value = super().export_text()
         if not self.log_file.closed:
-            self.log_file.write("\n"+captured_output_value+"\n")
+            self.log_file.write("\n"+" ".join(map(str, args)) + "\n")
 
     def cleanup(self):
         if not self.log_file.closed:

@@ -1,4 +1,5 @@
 import unittest
+from io import StringIO
 
 
 class RichConsoleTests(unittest.TestCase):
@@ -8,7 +9,7 @@ class RichConsoleTests(unittest.TestCase):
         except ModuleNotFoundError:
             self.skipTest("rich is not installed")
 
-        console = Console(record=True)
+        console = Console(file=StringIO(), record=True)
         console.print("Hello, World!")
 
         self.assertIn("Hello, World!", console.export_text())

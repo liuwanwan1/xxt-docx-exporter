@@ -187,17 +187,12 @@ android.presplash.filename = %(source.dir)s/../img/cover.jpg
 # (bool) If True, then compile with release mode
 android.release = True
 
-# (str) Keystore for signing release APKs
-android.sign.keystore = %(source.dir)s/xxtdocx.keystore
-
-# (str) Keystore alias
-android.sign.alias = xxtdocx
-
-# (str) Keystore password
-android.sign.keystore_password = xxtdocx2024
-
-# (str) Keystore alias password
-android.sign.alias_password = xxtdocx2024
+# Release APKs are signed by the CI/local build scripts so signing
+# credentials do not need to be stored in this manifest.
+# android.sign.keystore = %(source.dir)s/xxtdocx.keystore
+# android.sign.alias = xxtdocx
+# android.sign.keystore_password =
+# android.sign.alias_password =
 
 # (list) List of permissions
 android.permissions = INTERNET,ACCESS_NETWORK_STATE

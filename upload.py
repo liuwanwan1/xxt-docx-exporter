@@ -1,5 +1,5 @@
-import os
 import re
+import subprocess
 
 from config import __VERSION__
 
@@ -23,9 +23,9 @@ def update_version():
 
 
 def git_push_readme():
-    os.system("git add README.md")
-    os.system("git commit -m 'update version'")
-    os.system("git push origin red")
+    run_git("add", "README.md")
+    run_git("commit", "-m", "update version")
+    run_git("push", "origin", "red")
     print("2.提交新修改的README.md文件并推送到github成功！")
 
 
@@ -35,12 +35,24 @@ def git_push_readme():
 
 
 def git_tag():
-    os.system("git tag -a {} -m '{}'".format(__VERSION__, __VERSION__))
-    os.system("git push origin {}".format(__VERSION__))
+    run_git("tag", "-a", __VERSION__, "-m", __VERSION__)
+    run_git("push", "origin", __VERSION__)
     print("3.自动生成创建新git tag标签，并上穿到github成功！")
+
+
+def run_git(*args):
+    subprocess.run(["git", *args], check=True)
+
+
+def confirm_release():
+    answer = input(f"确认提交 README 并推送 tag {__VERSION__}? 输入 yes 继续：")
+    return answer == "yes"
 
 
 if __name__ == '__main__':
     update_version()
-    git_push_readme()
-    git_tag()
+    if confirm_release():
+        git_push_readme()
+        git_tag()
+    else:
+        print("已取消推送和打标签。")

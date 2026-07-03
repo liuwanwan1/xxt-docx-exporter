@@ -5,7 +5,6 @@
 # @PROJECT_NAME :xxt_cli
 # @File :  api.py
 import base64
-import re
 import secrets
 import time
 import random
@@ -22,6 +21,7 @@ from rich.console import Console
 
 from my_xxt.answer_type import AnswerType
 from my_xxt.question_type import QuestionType
+from my_xxt.submission import all_question_ids, build_submission_data, escape_tags
 
 # 加密密钥
 key = b"u2oh6Vu^HWe4_AES"
@@ -338,10 +338,9 @@ class NewXxt:
         redo_date = {}
         try:
             for _input in input_date:
-                _key = re.findall(r'id="(.*?)"', str(_input))
-                _value = str(_input.attrs['value'])
-                redo_date[_key[0]] = _value
-                redo_date = redo_date
+                input_id = _input.get("id")
+                if input_id:
+                    redo_date[input_id] = str(_input.get("value", ""))
         except Exception as e:
             redo_date = redo_date
         result = self.sees.get(
@@ -381,7 +380,9 @@ class NewXxt:
             # 根据选项去自动调用对应的方法来解析数据
             func_name = self.selectFunc(title_type, answer_type)
             func = getattr(_answer_type, func_name)
-            work_answer.append(func(item, Console(width=100)))
+            parsed_answer = func(item, Console(width=100))
+            if parsed_answer:
+                work_answer.append(parsed_answer)
         return work_answer
 
     def create_from(self, work_url: str) -> dict:
@@ -409,12 +410,9 @@ class NewXxt:
         do_work_params = parse.parse_qs(do_work_url_params.query)
 
         for _input in input_date:
-            try:
-                _key = re.findall(r'id="(.*?)"', str(_input))
-                _value = str(_input.attrs['value'])
-                commit_date_form[_key[0]] = _value
-            except Exception as e:
-                continue
+            input_id = _input.get("id")
+            if input_id:
+                commit_date_form[input_id] = str(_input.get("value", ""))
 
         commit_date = {
             "_classId": work_date["_classId"][0],
@@ -504,7 +502,9 @@ class NewXxt:
             title_type = item.find_next("span").string.split(",")[0].replace("(", "").replace(")", "")
             func_name = self.selectFunc(title_type, question_type)
             func = getattr(_question_type, func_name)
-            work_question.append(func(item))
+            parsed_question = func(item)
+            if parsed_question:
+                work_question.append(parsed_question)
         return work_question
 
     @staticmethod
@@ -524,16 +524,7 @@ class NewXxt:
 
     @staticmethod
     def escape_tags(html_str: str):
-        # 判断是否有html标签
-        if bool(BeautifulSoup(html_str, "html.parser").find()):
-            # 匹配html标签的正则表达式
-            pattern = re.compile(r'<.+?>')
-
-            # 将匹配到的html标签进行转义，但不包含标签中的内容
-            escaped_str = pattern.sub(lambda m: m.group(0).replace("<", "&lt;").replace(">", "&gt;"), html_str)
-            return escaped_str
-        else:
-            return html_str
+        return escape_tags(html_str)
 
     @staticmethod
     def allQuestionId(answer: list) -> str:
@@ -541,10 +532,7 @@ class NewXxt:
         将代做的题目id连接在一起
         :return: 连接好的id
         """
-        answer_id_all = ""
-        for item in answer:
-            answer_id_all = answer_id_all + item['id'] + ','
-        return answer_id_all
+        return all_question_ids(answer)
 
     @staticmethod
     def create_params(commit_from: dict) -> dict:
@@ -578,74 +566,4 @@ class NewXxt:
         :param answer:
         :return:
         """
-        commit_from_1 = {
-            "courseId": commit_from["courseid"],
-            "classId": commit_from["_classId"],
-            "knowledgeId": commit_from["knowledgeId"],
-            "cpi": commit_from["cpi"],
-            "workRelationId": commit_from["workRelationId"],
-            "workAnswerId": commit_from["workAnswerId"],
-            "jobid": commit_from["jobid"],
-            "standardEnc": commit_from["standardEnc"],
-            "enc_work": commit_from["token"],
-            "totalQuestionNum": commit_from["totalQuestionNum"],
-            "pyFlag": commit_from["pyFlag"],
-            "answerwqbid": self.allQuestionId(answer),
-            "mooc2": commit_from["mooc2"],
-            "randomOptions": commit_from["randomOptions"],
-        }
-        from_date_2 = {}
-        for item in answer:
-            if "单选题" in item["title"]:
-                key1 = "answertype" + item["id"]
-                from_date_2[key1] = 0
-                key2 = "answer" + item["id"]
-                from_date_2[key2] = item["answer"]
-            elif "填空题" in item["title"]:
-                key3 = "answertype" + item["id"]
-                from_date_2[key3] = 2
-                key4 = "tiankongsize" + item["id"]
-                from_date_2[key4] = len(item["answer"])
-                for answer_item in range(1, len(item["answer"]) + 1):
-                    _key = "answerEditor" + item["id"] + str(answer_item)
-                    from_date_2[_key] = "<p>" + item["answer"][answer_item - 1][3:] + "<br/></p>"
-            elif "判断题" in item["title"]:
-                key5 = "answertype" + item["id"]
-                from_date_2[key5] = 3
-                key6 = "answer" + item["id"]
-                if item["answer"] == "错":
-                    _answer = "false"
-                else:
-                    _answer = "true"
-                from_date_2[key6] = _answer
-            elif "简答题" in item["title"]:
-                key6 = "answertype" + item["id"]
-                from_date_2[key6] = 4
-                key7 = "answer" + item["id"]
-                from_date_2[key7] = item["answer"]
-            elif "论述题" in item["title"]:
-                key8 = "answertype" + item["id"]
-                from_date_2[key8] = 6
-                key9 = "answer" + item["id"]
-                from_date_2[key9] = item["answer"]
-            elif "多选题" in item["title"]:
-                key9 = "answertype" + item["id"]
-                from_date_2[key9] = 1
-                key10 = "answer" + item["id"]
-                from_date_2[key10] = item["answer"]
-            elif "编程题" in item["title"]:
-                key11 = "answertype" + item["id"]
-                from_date_2[key11] = 9
-                key12 = "tiankongsize" + item["id"]
-                from_date_2[key12] = len(item["answer"])
-                for answer_item in range(1, len(item["answer"]) + 1):
-                    _key = "answerEditor" + item["id"] + str(answer_item)
-                    from_date_2[_key] = "<p>" + self.escape_tags(item["answer"][answer_item - 1][3:]) + "<br/></p>"
-            elif "其他" in item['title']:
-                key13 = "answertype" + item["id"]
-                from_date_2[key13] = 8
-                key14 = "answer" + item["id"]
-                from_date_2[key14] = item["answer"]
-
-        commit_from_1 = dict(from_date_2, **commit_from_1)
-        return commit_from_1
+        return build_submission_data(commit_from, answer)

@@ -688,6 +688,7 @@ class AssignmentListScreen(Screen):
             answer_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'answers')
             os.makedirs(answer_dir, exist_ok=True)
             success = 0
+            failures = []
             for work in completed:
                 try:
                     answers = app.xxt_instance.getAnswer(work['work_url'])
@@ -696,9 +697,11 @@ class AssignmentListScreen(Screen):
                     with open(filepath, 'w', encoding='utf-8') as f:
                         json.dump(data, f, ensure_ascii=False)
                     success += 1
-                except:
-                    pass
-            Clock.schedule_once(lambda dt: self._show_toast(f'✅ 成功爬取 {success}/{len(completed)} 个作业'))
+                except Exception as e:
+                    failures.append(f"{work.get('work_name', work.get('id', '未知作业'))}: {e}")
+            if failures:
+                print("批量爬取失败:\n" + "\n".join(failures))
+            Clock.schedule_once(lambda dt: self._show_toast(f'✅ 成功爬取 {success}/{len(completed)} 个作业，失败 {len(failures)} 个'))
 
         threading.Thread(target=fetch_all, daemon=True).start()
 
@@ -715,8 +718,8 @@ class AssignmentListScreen(Screen):
     def _show_toast(self, msg):
         try:
             Toast(message=msg).open()
-        except:
-            pass
+        except Exception as e:
+            print(f"Toast显示失败: {e}")
 
 
 class ExportScreen(Screen):
@@ -822,8 +825,8 @@ class ExportScreen(Screen):
                     data = json.load(fp)
                 info = data.get('info', {})
                 label_text = f"📋 {info.get('work_name', f)} | {info.get('course_name', '')}"
-            except:
-                label_text = f"📄 {f}"
+            except Exception as e:
+                label_text = f"📄 {f} | 读取失败: {e}"
 
             lbl = Label(
                 text=label_text,
